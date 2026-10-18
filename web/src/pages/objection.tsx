@@ -1,9 +1,11 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { DraftBar } from "@/components/draft-bar";
 import { Field } from "@/components/field";
 import { TopBar } from "@/components/top-bar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { api, ApiFailure } from "@/lib/api";
+import { useDraft } from "@/lib/draft";
 import { go } from "@/lib/router";
 import type { Bank, CaseResponse } from "@/lib/types";
 
@@ -13,6 +15,7 @@ const textarea =
   "w-full rounded-xl border border-input bg-background px-4 py-3 text-base outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50";
 
 const EMPTY = { name: "", birth: "", address: "", tel: "", mobile: "", email: "", branch: "", depositType: "보통예금", accountNo: "", holder: "" };
+const BLANK = { f: EMPTY, events: [{ at: "", text: "" }], request: "" };
 
 // 서식 표의 한 칸: 작은 제목 + 입력값
 function Cell({ label, children, className = "" }: { label: string; children?: ReactNode; className?: string }) {
@@ -32,8 +35,13 @@ export function Objection({ caseId }: { caseId: string }) {
   const [bankName, setBankName] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [f, setF] = useState(EMPTY);
-  const [events, setEvents] = useState([{ at: "", text: "" }]);
+  const [events, setEvents] = useState(BLANK.events);
   const [request, setRequest] = useState("");
+  const draft = useDraft(caseId, "OBJECTION", { f, events, request }, (v) => {
+    setF({ ...EMPTY, ...v.f });
+    setEvents(v.events?.length ? v.events : BLANK.events);
+    setRequest(v.request ?? "");
+  });
   const [today] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}년 ${d.getMonth() + 1}월 ${d.getDate()}일`;
@@ -75,14 +83,15 @@ export function Objection({ caseId }: { caseId: string }) {
       </div>
       {error && <p role="alert" className="p-6 text-sm text-destructive">{error}</p>}
       {!c && !error && <p className="p-6 text-sm text-muted-foreground">불러오는 중…</p>}
-      {c && (
+      {c && draft.ready && (
         <div className="md:grid md:grid-cols-2 md:items-start print:block">
           <form className="space-y-4 p-6 print:hidden" onSubmit={(e) => e.preventDefault()}>
             <h2 className="text-2xl font-bold">이의제기 신청서를 채워 주세요</h2>
             <p className="text-sm text-muted-foreground">
-              {bankName || "은행"} 창구에서 받는 것과 같은 법정 서식(통신사기피해환급법 시행령 별지 제4호서식)이에요. 입력한 내용은 저장되지 않으니
-              화면을 나가기 전에 PDF로 저장하세요.
+              {bankName || "은행"} 창구에서 받는 것과 같은 법정 서식(통신사기피해환급법 시행령 별지 제4호서식)이에요. 입력한 내용은 암호화해 자동
+              저장되고, 마지막 수정 후 90일이 지나면 지워져요.
             </p>
+            <DraftBar draft={draft} empty={BLANK} />
 
             <fieldset className="space-y-4">
               <legend className="mb-2 text-lg font-bold">신청인</legend>

@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import { CircleAlert, CircleCheck, CircleX } from "lucide-react";
+import { DraftBar } from "@/components/draft-bar";
 import { Field } from "@/components/field";
 import { Option } from "@/components/option";
 import { TopBar } from "@/components/top-bar";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { api, ApiFailure } from "@/lib/api";
+import { useDraft } from "@/lib/draft";
 import { EVIDENCE, serviceFee, stampFee } from "@/lib/lawsuit";
 import { go } from "@/lib/router";
 import type { Bank, CaseResponse } from "@/lib/types";
@@ -20,6 +22,18 @@ const textarea =
 const INTEREST =
   "위 피해구제 신청에 따라 원고 명의 계좌가 지급정지되어 원고는 계좌를 사용하지 못하고 있습니다. 이에 「전기통신금융사기 피해 방지 및 피해금 환급에 관한 특별법」 제4조의2제2항에 따라 채무가 존재하지 아니함의 확인을 구합니다.";
 
+const EMPTY_F = { name: "", address: "", phone: "", dName: "", dAddress: "", court: "", accountNo: "", amount: "", part: "", extra: "" };
+const BLANK = {
+  f: EMPTY_F,
+  scope: "ALL" as "ALL" | "PART",
+  events: [{ at: "", text: "" }],
+  reason: "",
+  interest: INTEREST,
+  evidence: [] as string[],
+  refundChecked: false,
+  consulted: false,
+};
+
 type Check = { label: string; state: "ok" | "missing" | "warn"; note?: string };
 
 // 채무부존재확인 소장 작성 + 제출 전 점검. 사용자가 쓴 사실을 소장 형식에 옮길 뿐, 승패 판단은 하지 않는다.
@@ -29,14 +43,24 @@ export function Complaint({ caseId }: { caseId: string }) {
   const [c, setC] = useState<CaseResponse | null>(null);
   const [bankName, setBankName] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [f, setF] = useState({ name: "", address: "", phone: "", dName: "", dAddress: "", court: "", accountNo: "", amount: "", part: "", extra: "" });
-  const [scope, setScope] = useState<"ALL" | "PART">("ALL");
-  const [events, setEvents] = useState([{ at: "", text: "" }]);
+  const [f, setF] = useState(EMPTY_F);
+  const [scope, setScope] = useState(BLANK.scope);
+  const [events, setEvents] = useState(BLANK.events);
   const [reason, setReason] = useState("");
   const [interest, setInterest] = useState(INTEREST);
-  const [evidence, setEvidence] = useState<string[]>([]);
+  const [evidence, setEvidence] = useState(BLANK.evidence);
   const [refundChecked, setRefundChecked] = useState(false);
   const [consulted, setConsulted] = useState(false);
+  const draft = useDraft(caseId, "COMPLAINT", { f, scope, events, reason, interest, evidence, refundChecked, consulted }, (v) => {
+    setF({ ...EMPTY_F, ...v.f });
+    setScope(v.scope === "PART" ? "PART" : "ALL");
+    setEvents(v.events?.length ? v.events : BLANK.events);
+    setReason(v.reason ?? "");
+    setInterest(v.interest ?? INTEREST);
+    setEvidence(v.evidence ?? []);
+    setRefundChecked(!!v.refundChecked);
+    setConsulted(!!v.consulted);
+  });
   const [today] = useState(() => {
     const d = new Date();
     return `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
@@ -47,7 +71,6 @@ export function Complaint({ caseId }: { caseId: string }) {
     api<CaseResponse>(`/cases/${caseId}`)
       .then((data) => {
         setC(data);
-        if (data.depositAmount) setF((prev) => ({ ...prev, amount: String(data.depositAmount) }));
         if (data.bankCode)
           api<Bank[]>("/banks")
             .then((bs) => setBankName(bs.find((b) => b.code === data.bankCode)?.name ?? ""))
@@ -59,7 +82,9 @@ export function Complaint({ caseId }: { caseId: string }) {
       });
   }, [caseId]);
 
-  const amount = num(f.amount);
+  // 금액을 안 고쳤으면 사건에 등록한 입금액을 쓴다(저장본에 넣지 않으려고 상태 대신 계산)
+  const amountText = f.amount || (c?.depositAmount ? String(c.depositAmount) : "");
+  const amount = num(amountText);
   const part = num(f.part);
   const value = scope === "ALL" ? amount : Math.max(amount - part, 0); // 소가 = 다투는 금액
   const items = [...evidence, ...(f.extra.trim() ? [f.extra.trim()] : [])];
@@ -100,16 +125,17 @@ export function Complaint({ caseId }: { caseId: string }) {
       </div>
       {error && <p role="alert" className="p-6 text-sm text-destructive">{error}</p>}
       {!c && !error && <p className="p-6 text-sm text-muted-foreground">불러오는 중…</p>}
-      {c && (
+      {c && draft.ready && (
         <div className="md:grid md:grid-cols-2 md:items-start print:block">
           <form className="space-y-6 p-6 print:hidden" onSubmit={(e) => e.preventDefault()}>
             <div className="space-y-2">
               <h2 className="text-2xl font-bold">소장을 채워 주세요</h2>
               <p className="text-sm text-muted-foreground">
-                칸을 채우면 오른쪽(휴대폰은 아래)에 소장이 만들어져요. 입력한 내용은 저장되지 않으니 화면을 나가기 전에 PDF로 저장하세요.{" "}
+                칸을 채우면 오른쪽(휴대폰은 아래)에 소장이 만들어져요. 입력한 내용은 암호화해 자동 저장되고, 마지막 수정 후 90일이 지나면 지워져요.{" "}
                 <a href="#/lawsuit" className="underline">소송이 처음이라면 안내부터 보세요</a>
               </p>
             </div>
+            <DraftBar draft={draft} empty={BLANK} />
 
             <fieldset className="space-y-4">
               <legend className="mb-2 text-lg font-bold">원고 (나)</legend>
@@ -127,7 +153,7 @@ export function Complaint({ caseId }: { caseId: string }) {
 
             <fieldset className="space-y-4">
               <legend className="mb-2 text-lg font-bold">무엇을 확인받을까요?</legend>
-              <Field label="입금된 금액 (원)" inputMode="numeric" value={f.amount} onChange={set("amount")} />
+              <Field label="입금된 금액 (원)" inputMode="numeric" value={amountText} onChange={set("amount")} />
               <Field
                 label="지급정지된 계좌번호 (전체)"
                 inputMode="numeric"
@@ -225,6 +251,9 @@ export function Complaint({ caseId }: { caseId: string }) {
               전자소송(ecfs.scourt.go.kr)에 올리거나, 출력해 서명한 뒤 법원 민원실에 내세요. 종이로 낼 때는 피고 수만큼 소장 부본을 더 준비해요. 이 도구는 법률
               자문이 아니에요.
             </p>
+            <a href={`#/cases/${caseId}/lawsuit`} className="block text-center text-sm underline">
+              소장을 냈다면: 소송 진행 관리
+            </a>
           </form>
 
           <article
