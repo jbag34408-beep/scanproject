@@ -69,7 +69,7 @@ export function Objection({ caseId }: { caseId: string }) {
   const filled = events.filter((e) => e.at || e.text.trim());
 
   return (
-    <div className="mx-auto max-w-md md:max-w-6xl print:max-w-none">
+    <div className="mx-auto max-w-md md:max-w-5xl print:max-w-none">
       <div className="print:hidden">
         <TopBar title="이의제기 신청서" />
       </div>
