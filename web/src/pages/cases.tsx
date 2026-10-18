@@ -102,8 +102,8 @@ export function Cases() {
               )}
             </div>
             {c.status !== "DRAFT" && (
-              <a href={`#/cases/${c.id}/statement`} className={cn(linkButton("outline"), "w-full")}>
-                진술서 작성
+              <a href={`#/cases/${c.id}/objection`} className={cn(linkButton("outline"), "w-full")}>
+                이의제기 신청서 작성
               </a>
             )}
             {NEXT[c.status] && (

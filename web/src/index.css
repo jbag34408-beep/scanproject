@@ -129,6 +129,12 @@
     --sidebar-ring: oklch(0.556 0 0);
 }
 
+/* 이의제기 신청서 인쇄: 법정 서식 규격 A4 */
+@page {
+    size: A4;
+    margin: 15mm;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

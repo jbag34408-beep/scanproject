@@ -105,8 +105,8 @@ export function Checklist({ caseId }: { caseId: string }) {
         )}
 
         {data && (
-          <a href={`#/cases/${caseId}/statement`} className="block text-center text-sm underline">
-            진술서 작성하기
+          <a href={`#/cases/${caseId}/objection`} className="block text-center text-sm underline">
+            이의제기 신청서 작성하기
           </a>
         )}
 
