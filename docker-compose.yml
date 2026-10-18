@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: unfreeze-postgres
+    environment:
+      POSTGRES_DB: unfreeze
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

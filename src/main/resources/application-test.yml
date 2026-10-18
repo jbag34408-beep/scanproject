@@ -1,0 +1,6 @@
+# 데이터소스와 암호화 키는 IntegrationTestSupport에서 Testcontainers·랜덤 키로 주입한다
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
