@@ -24,10 +24,13 @@ public record DiagnosisRequest(
         @NotNull Boolean policeSummoned,
         @NotNull Answer otherRestrictions,
         @NotNull Boolean accountHandedOver,
-        @NotNull Set<Evidence> evidence
+        @NotNull Set<Evidence> evidence,
+        // 이미 은행에 이의제기를 했는지. REJECTED = 받아들여지지 않았거나 기다려도 풀리지 않음
+        @NotNull ObjectionStatus objectionStatus
 ) {
 
     public enum Answer { YES, NO, UNSURE }
+    public enum ObjectionStatus { NOT_FILED, PENDING, REJECTED }
 
     // EXCHANGE: 코인·상품권·환전 거래 대금(환핑·몰핑)
     public enum DepositReason { UNKNOWN, TRADE, EXCHANGE, OTHER }

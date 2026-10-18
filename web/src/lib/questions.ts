@@ -66,6 +66,16 @@ export const QUESTIONS: Question[] = [
     help: "은행에서 알려준 날짜를 입력하세요. 모르면 비워 두고 다음으로 넘어가세요.",
     type: "date",
   },
+  {
+    key: "objectionStatus",
+    title: "이미 은행에 이의제기를 했나요?",
+    type: "single",
+    options: [
+      { value: "NOT_FILED", label: "아직 안 했어요" },
+      { value: "PENDING", label: "했고, 결과를 기다리고 있어요" },
+      { value: "REJECTED", label: "했는데 받아들여지지 않았거나 풀리지 않아요" },
+    ],
+  },
   { key: "priorFreeze", title: "예전에 지급정지된 적이 있나요?", type: "single", options: yesNoUnsure },
   {
     key: "accountUsage",

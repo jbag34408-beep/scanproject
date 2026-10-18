@@ -28,7 +28,8 @@ class DiagnosisFlowTest extends IntegrationTestSupport {
             Map.entry("policeSummoned", false),
             Map.entry("otherRestrictions", "NO"),
             Map.entry("accountHandedOver", false),
-            Map.entry("evidence", List.of("TRANSACTION_HISTORY")));
+            Map.entry("evidence", List.of("TRANSACTION_HISTORY")),
+            Map.entry("objectionStatus", "NOT_FILED"));
 
     @Test
     void diagnoseAndReadLatest() throws Exception {

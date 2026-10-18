@@ -10,6 +10,7 @@ import com.unfreeze.diagnosis.dto.DiagnosisRequest.AccountUsage;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.Answer;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.DepositReason;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.Evidence;
+import com.unfreeze.diagnosis.dto.DiagnosisRequest.ObjectionStatus;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.ThreatPayment;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.TransferStage;
 import com.unfreeze.diagnosis.dto.DiagnosisResult;
@@ -33,7 +34,7 @@ class DiagnosisRulesTest {
     // 기본값: 모르는 돈, 1차, 통지 받음, 서면 접수 확인, 이력 없음, 생활비 계좌, 협박 없음, 신고함
     private static DiagnosisRequest answers(DepositReason reason, AccountUsage usage, Evidence... evidence) {
         return new DiagnosisRequest(Answer.NO, reason, TransferStage.FIRST, true, Answer.YES, null, Answer.NO, usage,
-                ThreatPayment.NONE, true, false, Answer.NO, false, Set.of(evidence));
+                ThreatPayment.NONE, true, false, Answer.NO, false, Set.of(evidence), ObjectionStatus.NOT_FILED);
     }
 
     private static DiagnosisRequest pingMoney() {
@@ -61,7 +62,7 @@ class DiagnosisRulesTest {
     void threatWithoutPoliceReportAddsReportStepAndDocuments() {
         DiagnosisRequest a = new DiagnosisRequest(Answer.NO, DepositReason.UNKNOWN, TransferStage.FIRST, false,
                 Answer.UNSURE, null, Answer.NO, AccountUsage.SALARY, ThreatPayment.ASKED, false, false, Answer.UNSURE,
-                false, Set.of(Evidence.TRANSACTION_HISTORY, Evidence.THREAT_MESSAGES));
+                false, Set.of(Evidence.TRANSACTION_HISTORY, Evidence.THREAT_MESSAGES), ObjectionStatus.NOT_FILED);
         DiagnosisResult r = DiagnosisRules.evaluate(pingMoneyCase(false), a);
 
         assertThat(r.alerts().get(0).code()).isEqualTo("THREAT_DO_NOT_PAY");
@@ -85,7 +86,7 @@ class DiagnosisRulesTest {
     void handedOverOrExchangeOnlyConsultsExpert() {
         DiagnosisRequest handedOver = new DiagnosisRequest(Answer.NO, DepositReason.UNKNOWN, TransferStage.FIRST, true,
                 Answer.YES, null, Answer.NO, AccountUsage.LIVING, ThreatPayment.NONE, true, false, Answer.NO, true,
-                Set.of());
+                Set.of(), ObjectionStatus.NOT_FILED);
         for (DiagnosisRequest a : new DiagnosisRequest[]{handedOver, answers(DepositReason.EXCHANGE, AccountUsage.OTHER)}) {
             DiagnosisResult r = DiagnosisRules.evaluate(pingMoneyCase(true), a);
 
@@ -111,7 +112,7 @@ class DiagnosisRulesTest {
     void deadlineAlertFromNoticeDate() {
         DiagnosisRequest a = new DiagnosisRequest(Answer.NO, DepositReason.UNKNOWN, TransferStage.LATER, true,
                 Answer.YES, LocalDate.of(2026, 10, 5), Answer.YES, AccountUsage.LIVING, ThreatPayment.NONE, true,
-                true, Answer.NO, false, Set.of());
+                true, Answer.NO, false, Set.of(), ObjectionStatus.NOT_FILED);
         DiagnosisResult r = DiagnosisRules.evaluate(pingMoneyCase(false), a);
 
         assertThat(r.alerts()).filteredOn(al -> al.code().equals("OBJECTION_DEADLINE"))
@@ -140,5 +141,34 @@ class DiagnosisRulesTest {
 
         assertThat(r.amounts().referenceDifference()).isNull();
         assertThat(r.amounts().note()).isNull();
+    }
+
+    private static DiagnosisRequest pingMoney(ObjectionStatus status) {
+        return new DiagnosisRequest(Answer.NO, DepositReason.UNKNOWN, TransferStage.FIRST, true, Answer.YES, null, Answer.NO,
+                AccountUsage.LIVING, ThreatPayment.NONE, true, false, Answer.NO, false, Set.of(), status);
+    }
+
+    @Test
+    void rejectedObjectionSuggestsLawsuitReview() {
+        DiagnosisResult r = DiagnosisRules.evaluate(pingMoneyCase(false), pingMoney(ObjectionStatus.REJECTED));
+
+        assertThat(r.pathways()).extracting(Pathway::code)
+                .containsExactly("OBJECTION_PARTIAL_RELEASE", "SETTLE_VIA_BANK", "LAWSUIT_REVIEW");
+        assertThat(r.steps()).extracting(Step::title)
+                .containsSubsequence("은행 중재로 피해자와 합의(선택)", "채무부존재확인 소송 검토", "재발 방지");
+    }
+
+    @Test
+    void pendingObjectionSuggestsLawsuitOnlyWhenOwnMoneyIsFrozen() {
+        // 묶인 금액(500만) > 입금액(30만)이면 내 돈까지 묶인 것
+        assertThat(DiagnosisRules.evaluate(pingMoneyCase(false), pingMoney(ObjectionStatus.PENDING)).pathways())
+                .extracting(Pathway::code).contains("LAWSUIT_REVIEW");
+
+        Case onlyDeposit = new Case(null, CaseType.PING_MONEY);
+        onlyDeposit.update(null, null, null, 300_000L, 300_000L, null, null, false);
+        assertThat(DiagnosisRules.evaluate(onlyDeposit, pingMoney(ObjectionStatus.PENDING)).pathways())
+                .extracting(Pathway::code).doesNotContain("LAWSUIT_REVIEW");
+        assertThat(DiagnosisRules.evaluate(pingMoneyCase(false), pingMoney(ObjectionStatus.NOT_FILED)).pathways())
+                .extracting(Pathway::code).doesNotContain("LAWSUIT_REVIEW");
     }
 }

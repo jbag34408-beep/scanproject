@@ -62,6 +62,16 @@ export function Result({ caseId }: { caseId: string }) {
               <div key={p.code} className="space-y-1 rounded-xl border p-4">
                 <p className="font-medium">{p.title}</p>
                 <p className="text-sm text-muted-foreground">{p.reason}</p>
+                {p.code === "LAWSUIT_REVIEW" && (
+                  <div className="flex gap-2 pt-2">
+                    <a href="#/lawsuit" className={cn(buttonVariants({ variant: "outline" }), "h-10 flex-1 rounded-xl")}>
+                      소송 쉽게 알아보기
+                    </a>
+                    <a href={`#/cases/${caseId}/complaint`} className={cn(buttonVariants(), "h-10 flex-1 rounded-xl")}>
+                      소장 작성하기
+                    </a>
+                  </div>
+                )}
               </div>
             ))}
           </section>

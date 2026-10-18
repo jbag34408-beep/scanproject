@@ -27,7 +27,8 @@ class ChecklistFlowTest extends IntegrationTestSupport {
             Map.entry("policeSummoned", false),
             Map.entry("otherRestrictions", "NO"),
             Map.entry("accountHandedOver", false),
-            Map.entry("evidence", List.of("TRANSACTION_HISTORY")));
+            Map.entry("evidence", List.of("TRANSACTION_HISTORY")),
+            Map.entry("objectionStatus", "NOT_FILED"));
 
     private long diagnosedCase(MockHttpSession session) throws Exception {
         long caseId = createCase(session);

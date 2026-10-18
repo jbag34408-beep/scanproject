@@ -6,6 +6,7 @@ import com.unfreeze.diagnosis.dto.DiagnosisRequest.AccountUsage;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.Answer;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.DepositReason;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.Evidence;
+import com.unfreeze.diagnosis.dto.DiagnosisRequest.ObjectionStatus;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.ThreatPayment;
 import com.unfreeze.diagnosis.dto.DiagnosisRequest.TransferStage;
 import com.unfreeze.diagnosis.dto.DiagnosisResult;
@@ -28,7 +29,7 @@ import java.util.Set;
 // TODO: 출시 전 법률 전문가 검토 후 문구 확정
 public final class DiagnosisRules {
 
-    public static final String VERSION = "2026-10-v2";
+    public static final String VERSION = "2026-10-v3";
 
     static final String DISCLAIMER = "이 결과는 입력하신 내용을 바탕으로 한 일반 정보이며 법률 자문이 아닙니다. "
             + "실제 처리는 금융회사와 수사기관의 판단에 따릅니다. "
@@ -47,6 +48,10 @@ public final class DiagnosisRules {
             "판매·중고거래 등 거래 대가로 받은 돈이라면 거래 사실을 보여주는 자료가 핵심입니다.");
     static final Pathway SETTLE_VIA_BANK = new Pathway("SETTLE_VIA_BANK", "은행 중재로 피해자와 합의(병행)",
             "실제 피해자가 은행에 해제를 요청하면 빨리 풀릴 수 있습니다. 연락은 반드시 은행을 통해서만 합니다.");
+    // 근거: 통신사기피해환급법(2026. 10. 2. 시행) 제4조의2제2항, 제5조제1항제5호, 제8조제2항제1호의2
+    static final Pathway LAWSUIT_REVIEW = new Pathway("LAWSUIT_REVIEW", "채무부존재확인 소송 검토",
+            "이의제기로 풀리지 않거나 피해금이 아닌 내 돈까지 묶여 있다면, 피해자를 상대로 채무부존재확인 소송을 낼 수 있습니다. "
+                    + "소송이 진행 중이면 채권소멸 공고가 시작되지 않고, 피해금이 아닌 돈은 지급정지 해제 대상이 됩니다.");
     static final Pathway CONSULT_EXPERT = new Pathway("CONSULT_EXPERT", "전문가 상담",
             "입력하신 상황은 스스로 진행하기보다 변호사 등 전문가와 상담한 뒤 진행하는 것이 안전합니다.");
 
@@ -145,6 +150,16 @@ public final class DiagnosisRules {
                 }
             } else {
                 addConsultStep(steps);
+            }
+            // 이의제기가 막혔거나, 기다리는 동안 피해금 외 내 돈까지 묶여 있으면 소송도 선택지로 안내한다
+            boolean rejected = a.objectionStatus() == ObjectionStatus.REJECTED;
+            boolean ownMoneyFrozen = a.objectionStatus() == ObjectionStatus.PENDING && amounts(c).referenceDifference() != null;
+            if (objection && (rejected || ownMoneyFrozen)) {
+                pathways.add(LAWSUIT_REVIEW);
+                addStep(steps, "채무부존재확인 소송 검토",
+                        "먼저 대한법률구조공단(132)에서 무료 상담을 받으세요. 입금된 돈이 실제 피해금이면 법원이 돌려줄 의무가 "
+                                + "있다고 볼 수 있습니다. 소송을 낸다면 은행에 환급·채권소멸이 이미 진행됐는지 확인하고, 접수 뒤 "
+                                + "소제기증명원을 은행에 내세요.", null);
             }
             if (a.policeSummoned() && !pathways.contains(CONSULT_EXPERT)) {
                 pathways.add(CONSULT_EXPERT);
