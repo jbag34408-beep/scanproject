@@ -43,7 +43,7 @@ export function DiagnosisQuestions({ caseId }: { caseId: string }) {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md md:max-w-3xl">
       <TopBar title="상황 진단" progress={`${index + 1} / ${QUESTIONS.length}`} />
       <div className="h-1 bg-muted" role="progressbar" aria-valuemin={1} aria-valuemax={QUESTIONS.length} aria-valuenow={index + 1}>
         <div className="h-full bg-primary transition-all" style={{ width: `${((index + 1) / QUESTIONS.length) * 100}%` }} />

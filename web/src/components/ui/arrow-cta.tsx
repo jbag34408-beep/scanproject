@@ -30,7 +30,12 @@ export const ArrowOverlay = ({ targetRef }: { targetRef: RefObject<HTMLElement |
       mouse.x = e.clientX;
       mouse.y = e.clientY;
     };
+    // 마우스가 창 밖으로 나가면 가장자리에 화살표가 남지 않게 지운다
+    const handleMouseOut = (e: MouseEvent) => {
+      if (!e.relatedTarget) mouse.x = mouse.y = 0;
+    };
     window.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseout", handleMouseOut);
 
     // shadcn 테마 색은 oklch()라 문자열 치환으로 투명도를 넣을 수 없어 globalAlpha로 처리한다
     const baseColor =
@@ -101,10 +106,11 @@ export const ArrowOverlay = ({ targetRef }: { targetRef: RefObject<HTMLElement |
       cancelAnimationFrame(frame);
       window.removeEventListener("resize", updateCanvasSize);
       window.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseout", handleMouseOut);
     };
   }, [targetRef]);
 
-  return <canvas ref={canvasRef} aria-hidden="true" className="fixed inset-0 pointer-events-none" />;
+  return <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none fixed inset-0 -z-10" />;
 };
 
 export const ArrowOverlayComponent = () => {

@@ -24,12 +24,13 @@ export function Landing() {
         </a>
       </nav>
 
+      {/* 화살표 캔버스는 뒤(-z-10)에 그려지고, 배경이 있는 제목·문단·카드가 화살표를 가린다 */}
       <main className="px-6">
         <div className="mt-10 flex flex-col sm:mt-24 sm:items-center">
-          <h1 className="text-3xl font-medium whitespace-pre-line sm:text-center sm:text-5xl sm:leading-tight">
+          <h1 className="bg-background text-3xl font-medium whitespace-pre-line sm:text-center sm:text-5xl sm:leading-tight">
             {"모르는 돈이 들어오고\n통장이 묶였나요?"}
           </h1>
-          <p className="mt-3 max-w-xl text-muted-foreground sm:text-center">
+          <p className="mt-3 max-w-xl bg-background text-muted-foreground sm:text-center">
             통장묶기(핑돈) 피해, 혼자서도 이의제기를 준비할 수 있어요. 법률 판단이나 대리 제출 없이, 내가 입력한 내용으로
             절차와 서류를 정리해 드립니다.
           </p>

@@ -51,7 +51,7 @@ export function CaseNew() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md md:max-w-3xl">
       <TopBar title="사건 정보" progress="1 / 2" />
       <form onSubmit={submit} className="space-y-4 p-6" noValidate>
         <h2 className="text-2xl font-bold">어떤 일이 있었나요?</h2>

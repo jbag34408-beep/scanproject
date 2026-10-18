@@ -30,7 +30,7 @@ export function Auth({ mode }: { mode: "login" | "signup" }) {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md md:mt-16 md:max-w-lg md:rounded-2xl md:border">
       <TopBar title={signup ? "회원가입" : "로그인"} />
       <form onSubmit={submit} className="space-y-4 p-6" noValidate>
         <h2 className="text-2xl font-bold">{signup ? "계정을 만들어 주세요" : "다시 오셨네요"}</h2>

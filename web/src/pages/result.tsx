@@ -37,7 +37,7 @@ export function Result({ caseId }: { caseId: string }) {
   }, [caseId]);
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md md:max-w-3xl">
       <TopBar title="진단 결과" />
       {error && <p role="alert" className="p-6 text-sm text-destructive">{error}</p>}
       {!d && !error && <p className="p-6 text-sm text-muted-foreground">불러오는 중…</p>}
