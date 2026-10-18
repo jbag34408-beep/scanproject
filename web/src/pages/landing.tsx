@@ -19,9 +19,14 @@ export function Landing() {
       <nav className="mx-auto flex max-w-screen-sm items-center justify-between px-6 py-4 text-sm">
         <span className="font-medium">unfreeze</span>
         {/* 로그인하지 않았으면 내 사건 화면이 로그인으로 보낸다 */}
-        <a href="#/cases" className="text-muted-foreground hover:text-foreground">
-          내 사건
-        </a>
+        <span className="flex gap-4">
+          <a href="#/lawsuit" className="text-muted-foreground hover:text-foreground">
+            소송 안내
+          </a>
+          <a href="#/cases" className="text-muted-foreground hover:text-foreground">
+            내 사건
+          </a>
+        </span>
       </nav>
 
       {/* 화살표 캔버스는 뒤(-z-10)에 그려지고, 배경이 있는 제목·문단·카드가 화살표를 가린다 */}
@@ -49,6 +54,12 @@ export function Landing() {
             내 상황 진단하기
           </a>
         </div>
+        <p className="mt-4 text-center text-sm text-muted-foreground">
+          이의제기로 안 풀린다면{" "}
+          <a href="#/lawsuit" className="underline hover:text-foreground">
+            채무부존재확인 소송 쉽게 알아보기
+          </a>
+        </p>
 
         <section aria-label="진단 결과 미리보기" className="mx-auto mt-16 max-w-screen-sm sm:mt-24">
           <div className="rounded-[2rem] bg-muted p-1">

@@ -102,9 +102,14 @@ export function Cases() {
               )}
             </div>
             {c.status !== "DRAFT" && (
-              <a href={`#/cases/${c.id}/objection`} className={cn(linkButton("outline"), "w-full")}>
-                이의제기 신청서 작성
-              </a>
+              <div className="flex gap-2">
+                <a href={`#/cases/${c.id}/objection`} className={linkButton("outline")}>
+                  이의제기 신청서
+                </a>
+                <a href={`#/cases/${c.id}/complaint`} className={linkButton("outline")}>
+                  소송 소장
+                </a>
+              </div>
             )}
             {NEXT[c.status] && (
               <div className="flex gap-2">

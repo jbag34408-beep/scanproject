@@ -111,6 +111,12 @@ export function Checklist({ caseId }: { caseId: string }) {
         )}
 
         {data && (
+          <a href={`#/cases/${caseId}/complaint`} className="block text-center text-sm underline">
+            이의제기로 안 풀리면: 채무부존재확인 소장 작성하기
+          </a>
+        )}
+
+        {data && (
           <a href="#/cases" className="block text-center text-sm text-muted-foreground underline">
             내 사건 목록으로
           </a>

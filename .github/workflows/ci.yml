@@ -32,5 +32,6 @@ jobs:
           cache-dependency-path: web/package-lock.json
       - run: npm ci
       - run: npm run lint
+      - run: npm test
       # 타입 검사(tsc -b) + 번들 빌드
       - run: npm run build
