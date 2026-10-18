@@ -17,3 +17,20 @@ jobs:
       - run: chmod +x gradlew
       # Testcontainers가 러너의 Docker로 PostgreSQL을 띄운다
       - run: ./gradlew test
+
+  web:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      # 타입 검사(tsc -b) + 번들 빌드
+      - run: npm run build
