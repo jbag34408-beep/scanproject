@@ -18,8 +18,9 @@ export function Landing() {
     <div className="relative text-foreground">
       <nav className="mx-auto flex max-w-screen-sm items-center justify-between px-6 py-4 text-sm">
         <span className="font-medium">unfreeze</span>
-        <a href="#/login" className="text-muted-foreground hover:text-foreground">
-          로그인
+        {/* 로그인하지 않았으면 내 사건 화면이 로그인으로 보낸다 */}
+        <a href="#/cases" className="text-muted-foreground hover:text-foreground">
+          내 사건
         </a>
       </nav>
 

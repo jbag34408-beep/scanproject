@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { AlertBox } from "@/components/alert-box";
 import { TopBar } from "@/components/top-bar";
 import { Badge } from "@/components/ui/badge";
+import { buttonVariants } from "@/components/ui/button";
 import { api, ApiFailure } from "@/lib/api";
 import { go } from "@/lib/router";
 import type { Diagnosis } from "@/lib/types";
@@ -108,6 +109,9 @@ export function Result({ caseId }: { caseId: string }) {
           )}
 
           <p className="text-xs text-muted-foreground">{d.disclaimer}</p>
+          <a href={`#/cases/${caseId}/checklist`} className={cn(buttonVariants(), "h-12 w-full rounded-xl text-base")}>
+            서류 준비 시작하기
+          </a>
         </div>
       )}
     </div>

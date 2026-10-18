@@ -98,6 +98,12 @@ public class Case extends BaseTimeEntity {
         }
     }
 
+    public void markPreparing() {
+        if (status == CaseStatus.DIAGNOSED) {
+            status = CaseStatus.PREPARING;
+        }
+    }
+
     public void changeAccount(String accountNo, String accountLast4) {
         this.accountNo = accountNo;
         this.accountLast4 = accountLast4;

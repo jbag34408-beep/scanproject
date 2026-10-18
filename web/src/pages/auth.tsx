@@ -20,7 +20,8 @@ export function Auth({ mode }: { mode: "login" | "signup" }) {
     try {
       if (signup) await api("/auth/signup", { method: "POST", body: { ...form, phone: form.phone || null } });
       await api("/auth/login", { method: "POST", body: { email: form.email, password: form.password } });
-      go("/cases/new");
+      // 새로 가입하면 바로 사건 등록, 기존 사용자는 내 사건 목록에서 이어서
+      go(signup ? "/cases/new" : "/cases");
     } catch (err) {
       setError(err instanceof ApiFailure ? err.error : { code: "NETWORK", message: "연결에 실패했어요. 잠시 후 다시 시도해 주세요." });
     } finally {
