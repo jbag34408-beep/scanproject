@@ -91,6 +91,13 @@ public class Case extends BaseTimeEntity {
         if (threatReceived != null) this.threatReceived = threatReceived;
     }
 
+    // 이미 다음 단계로 진행한 사건은 되돌리지 않는다
+    public void markDiagnosed() {
+        if (status == CaseStatus.DRAFT) {
+            status = CaseStatus.DIAGNOSED;
+        }
+    }
+
     public void changeAccount(String accountNo, String accountLast4) {
         this.accountNo = accountNo;
         this.accountLast4 = accountLast4;

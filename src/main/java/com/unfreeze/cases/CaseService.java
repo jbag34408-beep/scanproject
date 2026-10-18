@@ -50,7 +50,7 @@ public class CaseService {
     }
 
     // 남의 사건이면 존재 여부도 숨기기 위해 없는 것과 똑같이 404
-    private Case getOwned(Long userId, Long caseId) {
+    public Case getOwned(Long userId, Long caseId) {
         return caseRepository.findByIdAndUserId(caseId, userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.CASE_NOT_FOUND));
     }

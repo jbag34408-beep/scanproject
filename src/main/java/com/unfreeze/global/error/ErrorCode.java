@@ -15,6 +15,7 @@ public enum ErrorCode {
     EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 가입된 이메일입니다."),
     CASE_NOT_FOUND(HttpStatus.NOT_FOUND, "사건을 찾을 수 없습니다."),
     BANK_NOT_FOUND(HttpStatus.BAD_REQUEST, "존재하지 않는 은행입니다."),
+    DIAGNOSIS_NOT_FOUND(HttpStatus.NOT_FOUND, "진단 결과가 없습니다."),
     INTERNAL_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "서버 오류가 발생했습니다.");
 
     private final HttpStatus status;

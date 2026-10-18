@@ -8,16 +8,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.web.servlet.MockMvc;
 
 // 컨텍스트가 뜨면 Flyway 마이그레이션 + ddl-auto=validate가 통과한 것이다
 class SchemaValidationTest extends IntegrationTestSupport {
 
     @Autowired
     JdbcTemplate jdbcTemplate;
-
-    @Autowired
-    MockMvc mockMvc;
 
     @Test
     void flywayAppliedAndEntitiesValidate() {
