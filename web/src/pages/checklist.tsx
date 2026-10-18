@@ -4,12 +4,20 @@ import { TopBar } from "@/components/top-bar";
 import { Badge } from "@/components/ui/badge";
 import { api, ApiFailure } from "@/lib/api";
 import { go } from "@/lib/router";
-import type { Checklist as ChecklistData } from "@/lib/types";
+import type { Bank, CaseResponse, Checklist as ChecklistData } from "@/lib/types";
 
 // 진단 결과의 할 일·준비 서류를 체크해 가며 준비한다
 export function Checklist({ caseId }: { caseId: string }) {
   const [data, setData] = useState<ChecklistData | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [bank, setBank] = useState<Bank | null>(null);
+
+  // 은행 안내는 보조 정보라 실패해도 조용히 넘어간다
+  useEffect(() => {
+    Promise.all([api<CaseResponse>(`/cases/${caseId}`), api<Bank[]>("/banks")])
+      .then(([c, bs]) => setBank(bs.find((b) => b.code === c.bankCode) ?? null))
+      .catch(() => undefined);
+  }, [caseId]);
 
   useEffect(() => {
     api<ChecklistData>(`/cases/${caseId}/checklist`)
@@ -39,7 +47,7 @@ export function Checklist({ caseId }: { caseId: string }) {
   const done = data?.items.filter((i) => i.checked).length ?? 0;
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-md md:max-w-3xl">
       <TopBar title="서류 준비" progress={data ? `${done} / ${data.total}` : undefined} />
       {data && (
         <div className="h-1 bg-muted" role="progressbar" aria-label="준비 진행률" aria-valuemin={0} aria-valuemax={data.total} aria-valuenow={done}>
@@ -76,6 +84,30 @@ export function Checklist({ caseId }: { caseId: string }) {
               </Option>
             ))}
           </fieldset>
+        )}
+
+        {bank && (
+          <section className="space-y-2 rounded-xl bg-muted p-4 text-sm">
+            <h2 className="font-bold">{bank.name} 이의제기 안내</h2>
+            {bank.objectionChannel && <p>접수: {bank.objectionChannel}</p>}
+            {bank.phone && (
+              <p>
+                고객센터: <a href={`tel:${bank.phone}`} className="underline">{bank.phone}</a>
+              </p>
+            )}
+            {bank.guideUrl && (
+              <p>
+                <a href={bank.guideUrl} target="_blank" rel="noreferrer" className="underline">은행 홈페이지</a>
+              </p>
+            )}
+            <p className="text-xs text-muted-foreground">접수 방법과 필요한 서류는 은행마다 달라요. 가기 전에 꼭 전화로 확인하세요.</p>
+          </section>
+        )}
+
+        {data && (
+          <a href={`#/cases/${caseId}/statement`} className="block text-center text-sm underline">
+            진술서 작성하기
+          </a>
         )}
 
         {data && (

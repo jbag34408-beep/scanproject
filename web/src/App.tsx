@@ -6,10 +6,11 @@ import { Checklist } from "@/pages/checklist";
 import { DiagnosisQuestions } from "@/pages/diagnosis";
 import { Landing } from "@/pages/landing";
 import { Result } from "@/pages/result";
+import { Statement } from "@/pages/statement";
 
 export default function App() {
   const route = useRoute();
-  const caseRoute = route.match(/^\/cases\/(\d+)\/(diagnosis|result|checklist)$/);
+  const caseRoute = route.match(/^\/cases\/(\d+)\/(diagnosis|result|checklist|statement)$/);
 
   if (route === "/login") return <Auth key="login" mode="login" />;
   if (route === "/signup") return <Auth key="signup" mode="signup" />;
@@ -18,5 +19,6 @@ export default function App() {
   if (caseRoute?.[2] === "diagnosis") return <DiagnosisQuestions caseId={caseRoute[1]} />;
   if (caseRoute?.[2] === "result") return <Result caseId={caseRoute[1]} />;
   if (caseRoute?.[2] === "checklist") return <Checklist caseId={caseRoute[1]} />;
+  if (caseRoute?.[2] === "statement") return <Statement caseId={caseRoute[1]} />;
   return <Landing />;
 }

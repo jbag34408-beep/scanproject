@@ -1,6 +1,6 @@
 // 백엔드 DTO와 1:1 (unfreeze-api)
 
-export type Bank = { code: string; name: string };
+export type Bank = { code: string; name: string; objectionChannel: string | null; phone: string | null; guideUrl: string | null };
 
 export type CaseStatus = "DRAFT" | "DIAGNOSED" | "PREPARING" | "SUBMITTED" | "PARTIAL_RELEASED" | "CLOSED";
 
@@ -9,7 +9,12 @@ export type CaseResponse = {
   status: CaseStatus;
   bankCode: string | null;
   accountLast4: string | null;
+  depositAmount: number | null;
+  frozenAmount: number | null;
+  depositAt: string | null;
+  frozenAt: string | null;
   createdAt: string;
+  updatedAt: string;
 };
 
 export type Checklist = {
