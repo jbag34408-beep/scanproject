@@ -8,11 +8,12 @@ import { Landing } from "@/pages/landing";
 import { Result } from "@/pages/result";
 import { Complaint } from "@/pages/complaint";
 import { LawsuitGuide } from "@/pages/lawsuit-guide";
+import { LawsuitProgress } from "@/pages/lawsuit-progress";
 import { Objection } from "@/pages/objection";
 
 export default function App() {
   const route = useRoute();
-  const caseRoute = route.match(/^\/cases\/(\d+)\/(diagnosis|result|checklist|objection|complaint)$/);
+  const caseRoute = route.match(/^\/cases\/(\d+)\/(diagnosis|result|checklist|objection|complaint|lawsuit)$/);
 
   if (route === "/login") return <Auth key="login" mode="login" />;
   if (route === "/signup") return <Auth key="signup" mode="signup" />;
@@ -24,5 +25,6 @@ export default function App() {
   if (caseRoute?.[2] === "checklist") return <Checklist caseId={caseRoute[1]} />;
   if (caseRoute?.[2] === "objection") return <Objection caseId={caseRoute[1]} />;
   if (caseRoute?.[2] === "complaint") return <Complaint caseId={caseRoute[1]} />;
+  if (caseRoute?.[2] === "lawsuit") return <LawsuitProgress caseId={caseRoute[1]} />;
   return <Landing />;
 }

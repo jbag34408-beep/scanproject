@@ -23,12 +23,14 @@
 - `cases/` 사건 CRUD(소유자만, 남의 사건은 404), 계좌번호 암호화 + `accountLast4`
 - `diagnosis/` 진단 규칙 `DiagnosisRules`(버전 `2026-10-v2`), 진단 이력 jsonb 저장
 - `checklist/` 최신 진단의 할 일·서류로 체크리스트 구성, 체크 상태만 저장
+- `draft/` 이의제기 신청서·소장 작성 중 내용 임시저장. 내용(JSON)을 통째로 AES 암호화, 마지막 수정 후 **90일 지나면 매일 04시 배치로 삭제**(`@Scheduled`), 사용자가 직접 지울 수도 있음
+- `lawsuit/` 채무부존재확인 소송 진행 기록(사건당 1개, PUT = 통째로 교체). 소 제기일을 넣으면 사건 상태 `LAWSUIT`
 
 ### Flyway
-V1 users/banks/cases · V2 diagnoses · V3 checklist_checks · V4 은행 안내 데이터
+V1 users/banks/cases · V2 diagnoses · V3 checklist_checks · V4 은행 안내 데이터 · V5 document_drafts · V6 lawsuits
 
 ### 사건 상태 흐름
-`DRAFT` → (진단) `DIAGNOSED` → (첫 체크) `PREPARING` → (내 사건 목록 버튼) `SUBMITTED` → `PARTIAL_RELEASED` → `CLOSED`
+`DRAFT` → (진단) `DIAGNOSED` → (첫 체크) `PREPARING` → (내 사건 목록 버튼) `SUBMITTED` → (소송 기록에 소 제기일) `LAWSUIT` → `PARTIAL_RELEASED` → `CLOSED`
 - 제출·결과 기록은 기존 `PATCH /cases/{id}` `{status}`를 그대로 쓴다. 서버는 전이 순서를 검사하지 않는다.
 
 ### API (`/api/v1`)
@@ -37,12 +39,17 @@ V1 users/banks/cases · V2 diagnoses · V3 checklist_checks · V4 은행 안내 
 - cases: `POST/GET /cases`, `GET/PATCH /cases/{id}`
 - `POST /cases/{id}/diagnoses`, `GET /cases/{id}/diagnoses/latest`
 - `GET/PUT /cases/{id}/checklist` (PUT body `{key, checked}`)
+- `GET/PUT/DELETE /cases/{id}/drafts/{OBJECTION|COMPLAINT}` (PUT body `{content}` 최대 2만 자, 없으면 data null)
+- `GET/PUT /cases/{id}/lawsuit`
 
 ### 프론트 화면 (해시 라우팅 `web/src/lib/router.ts`)
-`/` 랜딩(arrow-cta 화살표) · `/login` · `/signup` · `/cases` 내 사건(로그아웃, 제출·결과 기록 버튼) · `/cases/new` · `/cases/:id/diagnosis` 질문 14개 · `/cases/:id/result` · `/cases/:id/checklist`(은행 안내 카드) · `/cases/:id/objection` 이의제기 신청서 · `/lawsuit` 소송 안내(비로그인) · `/cases/:id/complaint` 채무부존재확인 소장
+`/` 랜딩(arrow-cta 화살표) · `/login` · `/signup` · `/cases` 내 사건(로그아웃, 제출·결과 기록 버튼) · `/cases/new` · `/cases/:id/diagnosis` 질문 14개 · `/cases/:id/result` · `/cases/:id/checklist`(은행 안내 카드) · `/cases/:id/objection` 이의제기 신청서 · `/lawsuit` 소송 안내(비로그인) · `/cases/:id/complaint` 채무부존재확인 소장 · `/cases/:id/lawsuit` 소송 진행 관리
 - 소송 안내(`lawsuit-guide.tsx`): 법 조문 3개(통신사기피해환급법 제4조의2②, 제5조①5호, 제8조②1의2, 2026.10.2 시행본), 주의(피해금이면 부당이득 반환의무 가능·입증책임·각하), 6단계, 비용 계산기, 용어 풀이
 - 소장(`complaint.tsx`): 원고·피고·법원·금액·전부/일부 부존재·경위·채무 없는 사정·소 제기 이유(기본 문구)·증거(갑 제n호증) → A4 소장. 제출 전 점검표(필수/경고). 서버 저장 안 함
 - 비용(`lib/lawsuit.ts`, 테스트 `web/test/lawsuit.test.ts`, `npm test`, CI 포함): 인지액 = 민사소송 등 인지법 구간 요율, 송달료 = 당사자 수 × 15회 × 5,500원. **채무부존재확인은 확인의 소라 소액사건이 아님**(소액은 지급청구만)
+- 진단 규칙 `2026-10-v3`: 질문 `objectionStatus`(NOT_FILED/PENDING/REJECTED) 추가. REJECTED, 또는 PENDING이면서 묶인 금액 > 입금액이면 `LAWSUIT_REVIEW` 경로 + "채무부존재확인 소송 검토" 단계 → 결과 화면에서 소송 안내·소장 작성으로 연결
+- 서류 자동저장(`lib/draft.ts` `useDraft`, `components/draft-bar.tsx`): 1.5초 뒤 저장, 처음에 저장본 복원
+- 소송 진행(`lib/lawsuit.ts` `lawsuitSteps`): 소장 제출 → 소제기증명원 은행 제출(빠뜨리면 '빨리 해야 해요') → 변론기일 D-day → 항소 기한(판결정본 받은 날 + 14일, 민사소송법 제396조, 7일 이내면 강조) → 확정 후 은행 해제 요청
 - 레이아웃: 모바일은 `max-w-md` 한 줄, `md:`(768px+)부터 앱 화면 `max-w-3xl`, 로그인·가입은 테두리 카드 `max-w-lg`, 내 사건 2열, 이의제기 신청서는 입력·미리보기 좌우 배치(`max-w-5xl`)
 - 이의제기 신청서(진술서를 대체): 통신사기피해환급법 시행령 **[별지 제4호서식]**을 그대로 채운다. 은행 창구 양식도 이 법정 서식이고(하나은행 PDF로 확인) 은행마다 "○○○ 금융회사 귀하"만 다르다 → 사건 은행명으로 채움. 사유란 = 사건 입금·지급정지 정보 + 시간순 경위 + 요청 사항. `@page A4`, `window.print()`로 PDF. **서버에 저장하지 않는다**(전체 계좌번호·주소 등 민감 정보). 은행 로고는 넣지 않음
 
@@ -69,8 +76,9 @@ cd web && npm install && npm run dev                         # :5173 (/api → 8
 
 ## 5. 남은 일
 ### 다음 후보
+- 항소 기한·변론기일 알림(이메일/문자) — 지금은 화면에서만 D-day 표시
+- 공휴일 반영한 기한 계산(지금은 "공휴일이면 다음 날" 문구로만 안내)
 - 제출일·접수번호 기록(지금은 상태만 바뀌고 날짜는 `updatedAt`뿐)
-- 이의제기 신청서 저장·재편집(필요하면 암호화 저장). 지금은 화면을 나가면 사라짐
 - 은행 5곳 외 추가, 은행별 실제 이의제기 절차 안내
 - Figma에 이의제기 신청서 화면 추가, 서류 항목의 배지를 CheckItem 안으로(코드와 배치 다름)
 

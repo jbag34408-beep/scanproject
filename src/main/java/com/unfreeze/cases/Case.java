@@ -104,6 +104,13 @@ public class Case extends BaseTimeEntity {
         }
     }
 
+    // 소 제기일을 기록하면 소송 중으로 바꾼다. 이미 해제·종료된 사건은 그대로 둔다
+    public void markLawsuit() {
+        if (status != CaseStatus.PARTIAL_RELEASED && status != CaseStatus.CLOSED) {
+            status = CaseStatus.LAWSUIT;
+        }
+    }
+
     public void changeAccount(String accountNo, String accountLast4) {
         this.accountNo = accountNo;
         this.accountLast4 = accountLast4;

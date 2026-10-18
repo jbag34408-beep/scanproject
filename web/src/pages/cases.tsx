@@ -11,6 +11,7 @@ const STATUS_LABEL: Record<CaseStatus, string> = {
   DIAGNOSED: "진단 완료",
   PREPARING: "서류 준비 중",
   SUBMITTED: "제출함",
+  LAWSUIT: "소송 중",
   PARTIAL_RELEASED: "일부 해제됨",
   CLOSED: "종료",
 };
@@ -23,6 +24,10 @@ const NEXT: Partial<Record<CaseStatus, { to: CaseStatus; label: string; confirm:
   DIAGNOSED: [{ to: "SUBMITTED", label: "은행에 제출했어요", confirm: "이의제기 서류를 은행에 제출했나요?" }],
   PREPARING: [{ to: "SUBMITTED", label: "은행에 제출했어요", confirm: "이의제기 서류를 은행에 제출했나요?" }],
   SUBMITTED: [
+    { to: "PARTIAL_RELEASED", label: "일부 해제됐어요", confirm: "지급정지가 일부 해제됐나요?" },
+    { to: "CLOSED", label: "사건 종료", confirm: "이 사건을 종료로 기록할까요?" },
+  ],
+  LAWSUIT: [
     { to: "PARTIAL_RELEASED", label: "일부 해제됐어요", confirm: "지급정지가 일부 해제됐나요?" },
     { to: "CLOSED", label: "사건 종료", confirm: "이 사건을 종료로 기록할까요?" },
   ],
@@ -110,6 +115,11 @@ export function Cases() {
                   소송 소장
                 </a>
               </div>
+            )}
+            {(c.status === "SUBMITTED" || c.status === "LAWSUIT") && (
+              <a href={`#/cases/${c.id}/lawsuit`} className={cn(linkButton("outline"), "w-full")}>
+                소송 진행 관리
+              </a>
             )}
             {NEXT[c.status] && (
               <div className="flex gap-2">

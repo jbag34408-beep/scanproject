@@ -2,7 +2,7 @@
 
 export type Bank = { code: string; name: string; objectionChannel: string | null; phone: string | null; guideUrl: string | null };
 
-export type CaseStatus = "DRAFT" | "DIAGNOSED" | "PREPARING" | "SUBMITTED" | "PARTIAL_RELEASED" | "CLOSED";
+export type CaseStatus = "DRAFT" | "DIAGNOSED" | "PREPARING" | "SUBMITTED" | "LAWSUIT" | "PARTIAL_RELEASED" | "CLOSED";
 
 export type CaseResponse = {
   id: number;
